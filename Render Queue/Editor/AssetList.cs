@@ -7,40 +7,40 @@ namespace RenderQueuePlugin {
 	using System.Linq;
 
 	[System.Serializable]
-	public class MaterialList {
+	public class AssetList {
 
 		[SerializeField] Vector2 scrollPosition = Vector2.zero;
-		[SerializeField] List<MaterialEntry> entries;
+		[SerializeField] List<Entry> entries;
 
 		public bool HasPendingChanges  => entries.Any( e => e.ModifiedState == EntryState.Modified );
 		public void ApplyAllChanges()  => entries.ForEach( e => e.ApplyIfModified() );
 		public void RevertAllChanges() => entries.ForEach( e => e.RevertIfModified() );
 
-		public void UpdateList( Filter filter ) {
+		public void UpdateList( Filter filter, System.Type type ) {
 			if( entries == null )
-				entries = new List<MaterialEntry>();
+				entries = new List<Entry>();
 
 			// Collect any pending modifications before refreshing
-			IEnumerable<(Material,int)> modifications = entries
+			IEnumerable<(Object,int)> modifications = entries
 			.Where(  x => x.ModifiedState == EntryState.Modified )
-			.Select( x => (x.material, x.renderQueueInput) );
+			.Select( x => (x.asset, x.renderQueueInput) );
 
-			// Get all materials from the project filtered by the selected filter
-			entries = AssetDatabase.FindAssets( "t:material" )
+			// Get all assets from the project filtered by the selected filter
+			string assetSearch = $"t:{type.Name}";
+			entries = AssetDatabase.FindAssets( assetSearch )
 				.Select( guid => AssetDatabase.GUIDToAssetPath( guid ) )
 				.Where( filter.filter )
-				.Select( path => new MaterialEntry( AssetDatabase.LoadAssetAtPath<Material>( path ) ) )
+				.Select( path => new Entry( AssetDatabase.LoadAssetAtPath( path, type ) ) )
 				.ToList();
 
 			// Re-add the pending changes to corresponding entries if they still exist
 			foreach( var (modMat, modValue) in modifications ) {
-				MaterialEntry entry = entries.FirstOrDefault( e => e.material == modMat );
+				Entry entry = entries.FirstOrDefault( e => e.asset == modMat );
 				if( entry != null )
 					entry.renderQueueInput = modValue;
 			}
 
 			// Order by Render Queue input
-			// entries = entries.OrderByDescending( e => e.renderQueueInput ).ToList();
 			entries.Sort( ( a, b ) => b.renderQueueInput.CompareTo( a.renderQueueInput ) );
 
 		}

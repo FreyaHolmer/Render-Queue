@@ -10,8 +10,7 @@ namespace RenderQueuePlugin {
 	public static class RenderQueueGUI {
 
 		static GUIStyle panelStyle;
-		public static GUIStyle PanelStyle
-		{
+		public static GUIStyle PanelStyle {
 			get {
 				if( panelStyle == null ) {
 					panelStyle = new GUIStyle( EditorStyles.helpBox ) {
@@ -20,6 +19,24 @@ namespace RenderQueuePlugin {
 					};
 				}
 				return panelStyle;
+			}
+		}
+
+		static GUIContent iconMaterial;
+		public static GUIContent IconMaterial {
+			get {
+				if( iconMaterial == null )
+					iconMaterial = EditorGUIUtility.IconContent( "Material Icon" );
+				return iconMaterial;
+			}
+		}
+
+		static GUIContent iconShader;
+		public static GUIContent IconShader {
+			get {
+				if( iconShader == null )
+					iconShader = EditorGUIUtility.IconContent( "Shader Icon" );
+				return iconShader;
 			}
 		}
 

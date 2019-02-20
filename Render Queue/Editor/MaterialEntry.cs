@@ -7,29 +7,17 @@ namespace RenderQueuePlugin {
 	[System.Serializable]
 	public class MaterialEntry {
 
-		public enum State {
-			Unchanged,
-			Modified,
-			Missing
-		}
-
-		static readonly Color[] stateColors = {
-			Color.white,
-			Color.cyan,
-			Color.red
-		};
-
 		public Material material;
 		public int renderQueueInput;
 
 		public int RenderQueue => material.renderQueue;
-		public State ModifiedState {
+		public EntryState ModifiedState {
 			get {
 				if( material == null )
-					return State.Missing;
+					return EntryState.Missing;
 				if( renderQueueInput != RenderQueue )
-					return State.Modified;
-				return State.Unchanged;
+					return EntryState.Modified;
+				return EntryState.Unchanged;
 			}
 		}
 
@@ -38,24 +26,23 @@ namespace RenderQueuePlugin {
 			this.renderQueueInput = RenderQueue;
 		}
 
-		public string GetOffsetLabelString( State state ) {
-			if( state == State.Missing )
+		public string GetOffsetLabelString( EntryState state ) {
+			if( state == EntryState.Missing )
 				return "?";
 			int offset = renderQueueInput - 3000;
 			return RenderQueueGUI.ToSignedString( offset );
 		}
 
-		public string GetRenderTag( State state ) {
-			if( state == State.Missing )
+		public string GetRenderTag( EntryState state ) {
+			if( state == EntryState.Missing )
 				return "?";
 			return material.GetTag( "RenderType", true, "-" );
 		}
 
 		public void Draw() {
 
-			State state = ModifiedState;
-			GUI.color = stateColors[(int)state];
-			// bool materialMissing = state == State.Missing;
+			EntryState state = ModifiedState;
+			GUI.color = state.GetColor();
 
 			string offsetLabel = GetOffsetLabelString( state );
 			string renderTagLabel = GetRenderTag( state );
@@ -66,7 +53,7 @@ namespace RenderQueuePlugin {
 					GUILayout.Label( offsetLabel, GUILayout.Width( 40 ) );
 				} );
 
-				RenderQueueGUI.EnabledStateGroup( state != State.Missing, () => {
+				RenderQueueGUI.EnabledStateGroup( state != EntryState.Missing, () => {
 					renderQueueInput = EditorGUILayout.IntField( renderQueueInput, GUILayout.Width( 40 ) );
 					EditorGUILayout.ObjectField( material, typeof( Material ), allowSceneObjects: false, GUILayout.ExpandWidth( true ) );
 				} );
@@ -82,7 +69,7 @@ namespace RenderQueuePlugin {
 
 
 		public void ApplyIfModified() {
-			if( ModifiedState == State.Modified ) {
+			if( ModifiedState == EntryState.Modified ) {
 				UnityEditor.Undo.RecordObject( material, "change material render queque" );
 				material.renderQueue = renderQueueInput;
 				renderQueueInput = material.renderQueue; // Make sure it matches after
@@ -90,7 +77,7 @@ namespace RenderQueuePlugin {
 		}
 
 		public void RevertIfModified() {
-			if( ModifiedState == State.Modified )
+			if( ModifiedState == EntryState.Modified )
 				renderQueueInput = material.renderQueue;
 		}
 

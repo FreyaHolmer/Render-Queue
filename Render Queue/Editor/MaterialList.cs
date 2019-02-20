@@ -12,7 +12,7 @@ namespace RenderQueuePlugin {
 		[SerializeField] Vector2 scrollPosition = Vector2.zero;
 		[SerializeField] List<MaterialEntry> entries;
 
-		public bool HasPendingChanges  => entries.Any( e => e.ModifiedState == MaterialEntry.State.Modified );
+		public bool HasPendingChanges  => entries.Any( e => e.ModifiedState == EntryState.Modified );
 		public void ApplyAllChanges()  => entries.ForEach( e => e.ApplyIfModified() );
 		public void RevertAllChanges() => entries.ForEach( e => e.RevertIfModified() );
 
@@ -22,7 +22,7 @@ namespace RenderQueuePlugin {
 
 			// Collect any pending modifications before refreshing
 			IEnumerable<(Material,int)> modifications = entries
-			.Where(  x => x.ModifiedState == MaterialEntry.State.Modified )
+			.Where(  x => x.ModifiedState == EntryState.Modified )
 			.Select( x => (x.material, x.renderQueueInput) );
 
 			// Get all materials from the project filtered by the selected filter
@@ -57,7 +57,7 @@ namespace RenderQueuePlugin {
 
 					// Spacing between groups
 					if( i < entries.Count - 1 ) {
-						bool validEntries = entries[i].ModifiedState != MaterialEntry.State.Missing && entries[i+1].ModifiedState != MaterialEntry.State.Missing;
+						bool validEntries = entries[i].ModifiedState != EntryState.Missing && entries[i+1].ModifiedState != EntryState.Missing;
 						if( validEntries ) {
 							int delta = entries[i].RenderQueue - entries[i + 1].RenderQueue;
 							if( delta > 1 ) {
